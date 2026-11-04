@@ -10,6 +10,12 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: companies
+    description: Company workspaces and reporting
+  - name: operations
+    description: Company operational items
+  - name: rules
+    description: Internal decision rules
 paths:
   /healthz:
     get:
@@ -24,7 +30,241 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /companies:
+    get:
+      operationId: listCompanies
+      tags: [companies]
+      summary: List companies
+      responses:
+        "200":
+          description: Companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Company"
+    post:
+      operationId: createCompany
+      tags: [companies]
+      summary: Create a company
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompanyInput"
+      responses:
+        "201":
+          description: Company created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Company"
+  /companies/{companyId}/dashboard:
+    get:
+      operationId: getCompanyDashboard
+      tags: [companies]
+      summary: Get company dashboard summary
+      parameters:
+        - $ref: "#/components/parameters/CompanyId"
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardSummary"
+  /companies/{companyId}/operations:
+    get:
+      operationId: listCompanyOperations
+      tags: [operations]
+      summary: List company operations
+      parameters:
+        - $ref: "#/components/parameters/CompanyId"
+      responses:
+        "200":
+          description: Operations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Operation"
+    post:
+      operationId: createOperation
+      tags: [operations]
+      summary: Create an operation
+      parameters:
+        - $ref: "#/components/parameters/CompanyId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OperationInput"
+      responses:
+        "201":
+          description: Operation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Operation"
+  /operations/{operationId}:
+    patch:
+      operationId: updateOperation
+      tags: [operations]
+      summary: Update an operation
+      parameters:
+        - name: operationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OperationUpdate"
+      responses:
+        "200":
+          description: Operation updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Operation"
+        "404":
+          description: Operation not found
+    delete:
+      operationId: deleteOperation
+      tags: [operations]
+      summary: Delete an operation
+      parameters:
+        - name: operationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Operation deleted
+        "404":
+          description: Operation not found
+  /companies/{companyId}/rules:
+    get:
+      operationId: listCompanyRules
+      tags: [rules]
+      summary: List internal rules
+      parameters:
+        - $ref: "#/components/parameters/CompanyId"
+      responses:
+        "200":
+          description: Rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DecisionRule"
+    post:
+      operationId: createDecisionRule
+      tags: [rules]
+      summary: Create an internal rule
+      parameters:
+        - $ref: "#/components/parameters/CompanyId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionRuleInput"
+      responses:
+        "201":
+          description: Rule created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionRule"
+  /rules/{ruleId}:
+    patch:
+      operationId: updateDecisionRule
+      tags: [rules]
+      summary: Update a rule
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DecisionRuleUpdate"
+      responses:
+        "200":
+          description: Rule updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DecisionRule"
+        "404":
+          description: Rule not found
+    delete:
+      operationId: deleteDecisionRule
+      tags: [rules]
+      summary: Delete a rule
+      parameters:
+        - name: ruleId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Rule deleted
+        "404":
+          description: Rule not found
+  /companies/{companyId}/analytics:
+    get:
+      operationId: getCompanyAnalytics
+      tags: [companies]
+      summary: Get company analytics
+      parameters:
+        - $ref: "#/components/parameters/CompanyId"
+      responses:
+        "200":
+          description: Analytics report data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsReport"
+  /companies/{companyId}/insights:
+    get:
+      operationId: getCompanyInsights
+      tags: [companies]
+      summary: Get recommendations derived from company rules
+      parameters:
+        - $ref: "#/components/parameters/CompanyId"
+      responses:
+        "200":
+          description: Rule-based recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CompanyInsight"
 components:
+  parameters:
+    CompanyId:
+      name: companyId
+      in: path
+      required: true
+      schema:
+        type: integer
   schemas:
     HealthStatus:
       type: object
@@ -33,4 +273,140 @@ components:
           type: string
       required:
         - status
+    Company:
+      type: object
+      required: [id, name, sector, location, status, createdAt]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        sector: { type: string }
+        location: { type: string }
+        status: { type: string, enum: [active, review] }
+        createdAt: { type: string, format: date-time }
+    CompanyInput:
+      type: object
+      required: [name, sector, location]
+      properties:
+        name: { type: string, minLength: 1 }
+        sector: { type: string, minLength: 1 }
+        location: { type: string, minLength: 1 }
+    Operation:
+      type: object
+      required: [id, companyId, title, category, owner, status, priority, impact, dueDate, createdAt]
+      properties:
+        id: { type: integer }
+        companyId: { type: integer }
+        title: { type: string }
+        category: { type: string }
+        owner: { type: string }
+        status: { type: string, enum: [open, in_progress, done] }
+        priority: { type: string, enum: [low, medium, high] }
+        impact: { type: string }
+        dueDate: { type: ["string", "null"], format: date }
+        createdAt: { type: string, format: date-time }
+    OperationInput:
+      type: object
+      required: [title, category, owner, status, priority, impact]
+      properties:
+        title: { type: string, minLength: 1 }
+        category: { type: string, minLength: 1 }
+        owner: { type: string, minLength: 1 }
+        status: { type: string, enum: [open, in_progress, done] }
+        priority: { type: string, enum: [low, medium, high] }
+        impact: { type: string, minLength: 1 }
+        dueDate: { type: ["string", "null"], format: date }
+    OperationUpdate:
+      type: object
+      properties:
+        title: { type: string, minLength: 1 }
+        category: { type: string, minLength: 1 }
+        owner: { type: string, minLength: 1 }
+        status: { type: string, enum: [open, in_progress, done] }
+        priority: { type: string, enum: [low, medium, high] }
+        impact: { type: string, minLength: 1 }
+        dueDate: { type: ["string", "null"], format: date }
+    DecisionRule:
+      type: object
+      required: [id, companyId, name, metric, operator, threshold, guidance, enabled]
+      properties:
+        id: { type: integer }
+        companyId: { type: integer }
+        name: { type: string }
+        metric: { type: string, enum: [overdue_operations, high_priority_operations, open_operations] }
+        operator: { type: string, enum: [gt, gte, lt, lte] }
+        threshold: { type: number }
+        guidance: { type: string }
+        enabled: { type: boolean }
+    DecisionRuleInput:
+      type: object
+      required: [name, metric, operator, threshold, guidance, enabled]
+      properties:
+        name: { type: string, minLength: 1 }
+        metric: { type: string, enum: [overdue_operations, high_priority_operations, open_operations] }
+        operator: { type: string, enum: [gt, gte, lt, lte] }
+        threshold: { type: number }
+        guidance: { type: string, minLength: 1 }
+        enabled: { type: boolean }
+    DecisionRuleUpdate:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        metric: { type: string, enum: [overdue_operations, high_priority_operations, open_operations] }
+        operator: { type: string, enum: [gt, gte, lt, lte] }
+        threshold: { type: number }
+        guidance: { type: string, minLength: 1 }
+        enabled: { type: boolean }
+    DashboardSummary:
+      type: object
+      required: [openOperations, inProgressOperations, completedOperations, overdueOperations, highPriorityOperations, completionRate, recentOperations]
+      properties:
+        openOperations: { type: integer }
+        inProgressOperations: { type: integer }
+        completedOperations: { type: integer }
+        overdueOperations: { type: integer }
+        highPriorityOperations: { type: integer }
+        completionRate: { type: number }
+        recentOperations:
+          type: array
+          items: { $ref: "#/components/schemas/Operation" }
+    AnalyticsReport:
+      type: object
+      required: [monthly, categories, statuses]
+      properties:
+        monthly:
+          type: array
+          items:
+            type: object
+            required: [month, opened, completed]
+            properties:
+              month: { type: string }
+              opened: { type: integer }
+              completed: { type: integer }
+        categories:
+          type: array
+          items:
+            type: object
+            required: [category, count]
+            properties:
+              category: { type: string }
+              count: { type: integer }
+        statuses:
+          type: array
+          items:
+            type: object
+            required: [status, count]
+            properties:
+              status: { type: string }
+              count: { type: integer }
+    CompanyInsight:
+      type: object
+      required: [id, ruleName, metric, actualValue, threshold, guidance, severity]
+      properties:
+        id: { type: string }
+        ruleName: { type: string }
+        metric: { type: string }
+        actualValue: { type: number }
+        threshold: { type: number }
+        guidance: { type: string }
+        severity: { type: string, enum: [low, medium, high] }
 

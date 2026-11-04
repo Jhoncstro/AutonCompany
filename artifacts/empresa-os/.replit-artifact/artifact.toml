@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Nexo Empresarial"
+description = "Um centro de operações e inteligência que reúne dados de cada empresa, aplica instruções internas e transforma indicadores em relatórios e recomendações acionáveis."
+version = "1.0.0"
+id = "artifacts/empresa-os"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25911
+
+[services.development]
+run = "pnpm --filter @workspace/empresa-os run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/empresa-os", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/empresa-os/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25911"
+BASE_PATH = "/"
